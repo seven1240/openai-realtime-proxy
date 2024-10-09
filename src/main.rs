@@ -12,9 +12,18 @@ use axum::http::Response;
 use axum::body::Body;
 //allows to extract the IP of connecting user
 // use axum::extract::connect_info::ConnectInfo;
-use http::HeaderValue;
+// use http::HeaderValue;
 use openai_realtime_proxy::Proxy;
 use tokio::net::TcpListener;
+use serde::Deserialize;
+use std::fs::File;
+use std::io::Read;
+use toml;
+
+#[derive(Debug, Deserialize)]
+struct Config {
+    keys: Vec<String>,
+}
 
 #[tokio::main]
 async fn main() {
@@ -38,10 +47,25 @@ async fn ws_handler(ws: WebSocketUpgrade, headers: HeaderMap) -> impl IntoRespon
     // check for authentication/access/etc. here
     let addr = "";
     let auth = headers.get("authorization");
-    let key = &env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY env var not set.");
-    let hdr_auth = HeaderValue::from_str(&( "Bearer ".to_string() + key)).unwrap();
-    println!("auth: {auth:?} hdr_auth: {hdr_auth:?}");
-    if auth != Some(&hdr_auth) {
+    let mut authed = false;
+
+    let split: Vec<&str> = auth.unwrap().to_str().unwrap().split(' ').collect();
+
+    if (split.len() != 2) || (split[0] != "Bearer") {
+        authed = false;
+    } else {
+        let mut file = File::open("config.toml").unwrap();
+        let mut config_string = String::new();
+        file.read_to_string(&mut config_string).unwrap();
+
+        // Parse the string to a Config
+        let config: Config = toml::from_str(&config_string).unwrap();
+
+        // Check if the key is present
+        authed = config.keys.iter().any(|key| *key == split[1]);
+    }
+
+    if !authed {
         println!("unauthorized {addr}");
         Response::builder().status(StatusCode::FORBIDDEN).body(Body::from("Unauthorized")).unwrap()
     } else {
