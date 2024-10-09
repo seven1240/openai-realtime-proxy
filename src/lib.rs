@@ -84,8 +84,10 @@ impl Proxy {
         (WebSocketStream<MaybeTlsStream<TcpStream>>, Response),
         tokio_tungstenite::tungstenite::Error,
     > {
+        let url0 = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01";
+        // let url0 = "ws://localhost:9009/ws";
         let url =
-            Url::parse("wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01")
+            Url::parse(url0)
                 .unwrap();
 
         let mut request = url.into_client_request().unwrap();
