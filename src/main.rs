@@ -11,7 +11,7 @@ use axum::http::header::HeaderMap;
 use axum::http::Response;
 use axum::body::Body;
 //allows to extract the IP of connecting user
-// use axum::extract::connect_info::ConnectInfo;
+use axum::extract::connect_info::ConnectInfo;
 // use http::HeaderValue;
 use openai_realtime_proxy::Proxy;
 use tokio::net::TcpListener;
@@ -19,6 +19,8 @@ use serde::Deserialize;
 use std::fs::File;
 use std::io::Read;
 use toml;
+// use axum::debug_handler;
+use axum_macros::debug_handler;
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -42,7 +44,7 @@ async fn main() {
         .unwrap()
 }
 
-// #[debug_handler]
+#[debug_handler]
 async fn ws_handler(ws: WebSocketUpgrade, headers: HeaderMap) -> impl IntoResponse {
     // check for authentication/access/etc. here
     let addr = "";
