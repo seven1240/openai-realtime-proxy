@@ -39,15 +39,14 @@ async fn main() {
 
     println!("listening on http://{}", listener.local_addr().unwrap());
 
-    axum::serve(listener, app.into_make_service())
+    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>())
         .await
         .unwrap()
 }
 
 #[debug_handler]
-async fn ws_handler(ws: WebSocketUpgrade, headers: HeaderMap) -> impl IntoResponse {
+async fn ws_handler(ws: WebSocketUpgrade, headers: HeaderMap, ConnectInfo(addr): ConnectInfo<SocketAddr>) -> impl IntoResponse {
     // check for authentication/access/etc. here
-    let addr = "";
     let auth = headers.get("authorization");
     let mut authed = false;
 
