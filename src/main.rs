@@ -29,7 +29,8 @@ struct Config {
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/v1/realtime", get(ws_handler));
+    let app = Router::new().route("/v1/realtime", get(ws_handler))
+        .route("/v9/realtime", get(ws_handler));
 
     let addr = SocketAddr::from((
         [0, 0, 0, 0],
